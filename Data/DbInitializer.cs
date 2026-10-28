@@ -1,4 +1,4 @@
-using BackToYou.Models.Entities;
+﻿using BackToYou.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,14 +50,19 @@ namespace BackToYou.Data
                 }
             }
 
-            // 3. Seed Realistic Student Users
+            // 3. Seed Realistic Student Users across Campus Departments
             var studentsData = new[]
             {
                 new { Email = "student@campus.edu", Name = "Rahul Sharma", Roll = "CS2023045", Dept = "Computer Science & Engineering", Phone = "9876501234" },
                 new { Email = "priya.patel@campus.edu", Name = "Priya Patel", Roll = "EC2023088", Dept = "Electronics & Communication", Phone = "9876501235" },
                 new { Email = "ananya.reddy@campus.edu", Name = "Ananya Reddy", Roll = "ME2022019", Dept = "Mechanical Engineering", Phone = "9876501236" },
                 new { Email = "vikram.singh@campus.edu", Name = "Vikram Singh", Roll = "CE2023062", Dept = "Civil Engineering", Phone = "9876501237" },
-                new { Email = "sneha.deshmukh@campus.edu", Name = "Sneha Deshmukh", Roll = "BT2024012", Dept = "Biotechnology", Phone = "9876501238" }
+                new { Email = "sneha.deshmukh@campus.edu", Name = "Sneha Deshmukh", Roll = "BT2024012", Dept = "Biotechnology", Phone = "9876501238" },
+                new { Email = "arjun.nair@campus.edu", Name = "Arjun Nair", Roll = "IT2023031", Dept = "Information Technology", Phone = "9876501239" },
+                new { Email = "meera.iyer@campus.edu", Name = "Meera Iyer", Roll = "EE2023054", Dept = "Electrical & Electronics", Phone = "9876501240" },
+                new { Email = "rohan.verma@campus.edu", Name = "Rohan Verma", Roll = "CH2022027", Dept = "Chemical Engineering", Phone = "9876501241" },
+                new { Email = "tanvi.joshi@campus.edu", Name = "Tanvi Joshi", Roll = "AI2024089", Dept = "Data Science & AI", Phone = "9876501242" },
+                new { Email = "karthik.sundaram@campus.edu", Name = "Karthik Sundaram", Roll = "AE2023015", Dept = "Aerospace Engineering", Phone = "9876501243" }
             };
 
             var studentUsers = new List<ApplicationUser>();
@@ -117,42 +122,56 @@ namespace BackToYou.Data
             var clothCat = allCategories.FirstOrDefault(c => c.Name.Contains("Clothing"))?.Id ?? allCategories[0].Id;
             var miscCat = allCategories.FirstOrDefault(c => c.Name.Contains("Miscellaneous"))?.Id ?? allCategories[0].Id;
 
-            // 5. Seed Realistic Dataset with Images (35 Items + Claims)
-            // Re-seed if items lack images or dataset has fewer than 20 items with photos
-            bool needsPhotos = !await context.Items.AnyAsync(i => i.ImagePath != null && i.ImagePath != "");
-            if ((await context.Items.CountAsync() < 15 || needsPhotos) && studentUsers.Count >= 2 && adminUser != null)
+            // 5. Seed Comprehensive Realistic Dataset (95 Diverse Items + Claims)
+            // Safety check: Only seed if demo items count < 80. Real user posts are NEVER deleted.
+            var demoUserIds = studentUsers.Select(u => u.Id).Append(adminUser.Id).ToHashSet();
+            var existingDemoItemCount = await context.Items.CountAsync(i => demoUserIds.Contains(i.ReporterUserId));
+
+            if (existingDemoItemCount < 80 && studentUsers.Count >= 10 && adminUser != null)
             {
-                // Clear any old items to provide the complete photo dataset
-                context.Claims.RemoveRange(context.Claims);
-                context.Items.RemoveRange(context.Items);
+                // Safely remove only existing demo claims and demo items
+                var demoClaims = await context.Claims
+                    .Where(c => demoUserIds.Contains(c.ClaimerUserId) || (c.Item != null && demoUserIds.Contains(c.Item.ReporterUserId)))
+                    .ToListAsync();
+                context.Claims.RemoveRange(demoClaims);
+
+                var oldDemoItems = await context.Items
+                    .Where(i => demoUserIds.Contains(i.ReporterUserId))
+                    .ToListAsync();
+                context.Items.RemoveRange(oldDemoItems);
                 await context.SaveChangesAsync();
 
-                var u1 = studentUsers[0]; // Rahul Sharma
-                var u2 = studentUsers[1]; // Priya Patel
-                var u3 = studentUsers[2]; // Ananya Reddy
-                var u4 = studentUsers[3]; // Vikram Singh
-                var u5 = studentUsers[4]; // Sneha Deshmukh
-                var adm = adminUser;      // Campus Admin
+                var u1 = studentUsers[0];  // Rahul Sharma (CS)
+                var u2 = studentUsers[1];  // Priya Patel (ECE)
+                var u3 = studentUsers[2];  // Ananya Reddy (Mech)
+                var u4 = studentUsers[3];  // Vikram Singh (Civil)
+                var u5 = studentUsers[4];  // Sneha Deshmukh (Biotech)
+                var u6 = studentUsers[5];  // Arjun Nair (IT)
+                var u7 = studentUsers[6];  // Meera Iyer (EEE)
+                var u8 = studentUsers[7];  // Rohan Verma (Chem)
+                var u9 = studentUsers[8];  // Tanvi Joshi (AI & DS)
+                var u10 = studentUsers[9]; // Karthik Sundaram (Aerospace)
+                var adm = adminUser;       // Campus Security Admin
 
                 var items = new List<Item>
                 {
-                    // ── Electronics & Gadgets ─────────────────────────
+                    // â”€â”€ 1. Electronics & Gadgets (15 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
-                        Title = "Found: Apple AirPods Pro (2nd Gen) in White Case",
-                        Description = "Found near table 14 in the 2nd floor silent reading zone. Clean white case, fully charged.",
+                        Title = "Found: Apple AirPods Pro (2nd Gen) in White MagSafe Case",
+                        Description = "Found near table 14 in the 2nd floor silent reading zone. Clean white case with lanyard loop, fully charged.",
                         Type = ItemType.Found,
                         CategoryId = elecCat,
                         Location = "Central Library 2nd Floor (Silent Reading Zone)",
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.UnderClaim,
-                        ImagePath = "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/airpods-pro.jpg",
                         ReporterUserId = u2.Id
                     },
                     new Item
                     {
-                        Title = "Lost: Space Grey MacBook Air 13\" (M2)",
+                        Title = "Lost: Space Grey MacBook Air 13\" (M2) in Matte Shell",
                         Description = "Laptop has a transparent matte hard case with GitHub and Linux octocat stickers on the lid. Left behind after guest lecture.",
                         Type = ItemType.Lost,
                         CategoryId = elecCat,
@@ -160,12 +179,12 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/macbook-air.jpg",
                         ReporterUserId = u1.Id
                     },
                     new Item
                     {
-                        Title = "Found: OnePlus 65W Warp Power Adapter & Red Cable",
+                        Title = "Found: OnePlus 65W Warp Power Adapter & Red Type-C Cable",
                         Description = "Fast charger plugged into the wall outlet near the window corner booth. Kept at canteen billing desk.",
                         Type = ItemType.Found,
                         CategoryId = elecCat,
@@ -173,7 +192,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/oneplus-charger.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -186,7 +205,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/galaxy-buds.jpg",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -199,12 +218,12 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/casio-calculator.jpg",
                         ReporterUserId = u4.Id
                     },
                     new Item
                     {
-                        Title = "Found: SanDisk Ultra Dual Drive 64GB USB-C",
+                        Title = "Found: SanDisk Ultra Dual Drive 64GB USB-C Pen Drive",
                         Description = "Silver metallic swivel pen drive connected to Lab computer #22. Contains academic PDF slides.",
                         Type = ItemType.Found,
                         CategoryId = elecCat,
@@ -212,7 +231,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-6),
                         CreatedAt = DateTime.UtcNow.AddDays(-6),
                         Status = ItemStatus.Claimed,
-                        ImagePath = "https://images.unsplash.com/photo-1618410320928-25228d811631?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/sandisk-pendrive.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -225,7 +244,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/noise-smartwatch.jpg",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -238,11 +257,102 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-7),
                         CreatedAt = DateTime.UtcNow.AddDays(-7),
                         Status = ItemStatus.Closed,
-                        ImagePath = "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/boat-earphones.jpg",
                         ReporterUserId = u4.Id
                     },
+                    new Item
+                    {
+                        Title = "Lost: iPhone 13 (128GB Starlight) in Clear Silicone Case",
+                        Description = "Phone has a clear case with a small anime cat sticker between the case and phone body. Lock screen wallpaper shows a golden retriever.",
+                        Type = ItemType.Lost,
+                        CategoryId = elecCat,
+                        Location = "Central Library East Lawn Benches",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/iphone-13.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Mi 20000mAh Power Bank (Black Matte 18W)",
+                        Description = "Heavy black dual-USB power bank found sitting on the bench next to the electrical power switchboard.",
+                        Type = ItemType.Found,
+                        CategoryId = elecCat,
+                        Location = "Electrical Machines Lab 2 (Workstation 8)",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/mi-powerbank.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Logitech Pebble M350 Wireless Bluetooth Mouse (Off-White)",
+                        Description = "Slim pebble-shaped quiet click mouse. Battery compartment has one rechargeable AA cell.",
+                        Type = ItemType.Lost,
+                        CategoryId = elecCat,
+                        Location = "Digital Learning Center 1st Floor",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/logitech-mouse.jpg",
+                        ReporterUserId = u8.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: iPad 9th Gen (Space Grey) in Magnetic Navy Smart Folio",
+                        Description = "Found on the podium shelf in Seminar Room 104. Screen is password locked with a white stylus in pen loop.",
+                        Type = ItemType.Found,
+                        CategoryId = elecCat,
+                        Location = "Biotechnology Seminar Room 104",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/ipad-9thgen.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Dell 65W Round-Tip AC Laptop Power Adapter",
+                        Description = "Original Dell charger with thick power cord and rubber tie. Forgotten after practical design exam.",
+                        Type = ItemType.Lost,
+                        CategoryId = elecCat,
+                        Location = "Civil CAD Studio Desk 15",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/dell-laptop-charger.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Sony WH-CH520 Wireless Bluetooth Headphones (Black)",
+                        Description = "Over-ear lightweight swivel headphones in clean condition with USB-C charging slot.",
+                        Type = ItemType.Found,
+                        CategoryId = elecCat,
+                        Location = "Audio Visual Media Lab (Booth 3)",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/sony-headphones.jpg",
+                        ReporterUserId = u10.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Kindle Paperwhite (11th Gen 6.8\") in Sage Green Magnetic Cover",
+                        Description = "E-reader in sage green PU leather case with slight corner wear. Home screen registered to 'Rohan V.'",
+                        Type = ItemType.Lost,
+                        CategoryId = elecCat,
+                        Location = "Nescafe Lawn Garden Umbrella Table",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/kindle-paperwhite.jpg",
+                        ReporterUserId = u8.Id
+                    },
 
-                    // ── ID Cards & Documents ──────────────────────────
+                    // â”€â”€ 2. ID Cards & Documents (12 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: Student ID Smartcard - ECE Department",
@@ -253,7 +363,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.UnderClaim,
-                        ImagePath = "https://images.unsplash.com/photo-1589330694653-dad6d3240a2b?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/student-id-smartcard.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -266,12 +376,12 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/driving-license-folder.jpg",
                         ReporterUserId = u3.Id
                     },
                     new Item
                     {
-                        Title = "Found: Semester End Exam Hall Ticket & Clipboard",
+                        Title = "Found: Semester End Exam Hall Ticket & Wooden Clipboard",
                         Description = "Wooden exam clipboard with 6th sem university hall ticket for Civil Eng student clipped on.",
                         Type = ItemType.Found,
                         CategoryId = idCat,
@@ -279,7 +389,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
-                        ImagePath = "https://images.unsplash.com/photo-1584697964190-705b893a2095?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/exam-hallticket.jpg",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -292,7 +402,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/college-bus-pass.jpg",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -305,11 +415,102 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.UnderClaim,
-                        ImagePath = "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/sbi-debit-card.jpg",
                         ReporterUserId = adm.Id
                     },
+                    new Item
+                    {
+                        Title = "Lost: Final Year Project Synopsis Spiral Book (CS Dept)",
+                        Description = "Navy blue plastic spiral booklet titled 'Distributed Lost & Found System Architecture'. Has guide's initial signature.",
+                        Type = ItemType.Lost,
+                        CategoryId = idCat,
+                        Location = "Dean of Academics Office Waiting Area",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/project-synopsis-book.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: GATE 2026 Registration Receipt & State Bank Fee Challan",
+                        Description = "Triplicate bank payment challan voucher folded inside yellow university envelope.",
+                        Type = ItemType.Found,
+                        CategoryId = idCat,
+                        Location = "Main Auditorium Registration Counter",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/registration-challan.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: University Central Library Reader Barcode Card",
+                        Description = "White laminated library borrower pass with student barcode sticker 'LIB-2023-441'.",
+                        Type = ItemType.Lost,
+                        CategoryId = idCat,
+                        Location = "Library Reference Section 3rd Floor",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/library-membership-card.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: HDFC Bank Millennia Visa Contactless Credit Card",
+                        Description = "Dark holographic card found dropped near cashier register. Card has been secured at campus bank branch.",
+                        Type = ItemType.Found,
+                        CategoryId = idCat,
+                        Location = "Campus Juice Bar & Snack Corner",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/hdfc-credit-card.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Laminated 10th & 12th Board Marksheets Folder",
+                        Description = "Hard plastic file folder holding photocopies of secondary certificates needed for campus recruitment verification.",
+                        Type = ItemType.Lost,
+                        CategoryId = idCat,
+                        Location = "Training & Placement Cell Interview Room 3",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/marks-memo-folder.jpg",
+                        ReporterUserId = u10.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Hostel Resident Smart Identification Card & Mess Tokens",
+                        Description = "Green border hostel resident pass with 15 breakfast mess coupons clipped to back.",
+                        Type = ItemType.Found,
+                        CategoryId = idCat,
+                        Location = "Boys Hostel Dining Hall Mess Counter",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/hostel-resident-id.jpg",
+                        ReporterUserId = u4.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Red Cross Blood Donation Donor Card & Blood Group Badge",
+                        Description = "Red folding donor pass showing O-positive blood group with campus NSS camp stamp.",
+                        Type = ItemType.Lost,
+                        CategoryId = idCat,
+                        Location = "Campus Health Center / First Aid Clinic",
+                        EventDate = DateTime.Today.AddDays(-6),
+                        CreatedAt = DateTime.UtcNow.AddDays(-6),
+                        Status = ItemStatus.Closed,
+                        ImagePath = "/images/items/blood-donation-card.jpg",
+                        ReporterUserId = u5.Id
+                    },
 
-                    // ── Wallets, Bags & Purses ────────────────────────
+                    // â”€â”€ 3. Wallets, Bags & Purses (12 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: Wildcraft Ergonomic College Backpack (Navy Blue)",
@@ -320,7 +521,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/wildcraft-backpack.jpg",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -333,7 +534,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/tommy-leather-wallet.jpg",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -346,12 +547,12 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Claimed,
-                        ImagePath = "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/skybags-pink-sling.jpg",
                         ReporterUserId = u2.Id
                     },
                     new Item
                     {
-                        Title = "Lost: Black Nivia Sports Duffle Bag",
+                        Title = "Lost: Black Nivia Sports Duffle Bag with Football Studs",
                         Description = "Medium sports duffle with football studs, shin guards, and college sports jersey #7.",
                         Type = ItemType.Lost,
                         CategoryId = bagCat,
@@ -359,12 +560,12 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1577733966973-d680bffd2e80?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/sports-duffle-bag.jpg",
                         ReporterUserId = u4.Id
                     },
                     new Item
                     {
-                        Title = "Found: Floral Canvas Tote Bag with Books",
+                        Title = "Found: Floral Canvas Tote Bag with Engineering Notebooks",
                         Description = "Eco-friendly tote bag with sunflower pattern holding two engineering chemistry notebooks.",
                         Type = ItemType.Found,
                         CategoryId = bagCat,
@@ -372,14 +573,105 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/floral-canvas-tote.jpg",
                         ReporterUserId = u3.Id
                     },
-
-                    // ── Keys & Keychains ──────────────────────────────
                     new Item
                     {
-                        Title = "Found: Royal Enfield Classic Bike Key with Bullet Charm",
+                        Title = "Lost: American Tourister Grey Laptop Backpack (32L)",
+                        Description = "Grey backpack with orange interior accents. Contains an engineering calculator and water bottle in side mesh.",
+                        Type = ItemType.Lost,
+                        CategoryId = bagCat,
+                        Location = "Chemistry PG Block Staircase Landing",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/american-tourister-backpack.jpg",
+                        ReporterUserId = u8.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Small Black Leather Coin Purse with Locker Key",
+                        Description = "Zipper pouch holding loose change, a brass padlock key, and two stamps.",
+                        Type = ItemType.Found,
+                        CategoryId = bagCat,
+                        Location = "Girls Common Room Locker Bench",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/black-coin-purse.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Tan Brown Minimalist Leather Card Holder",
+                        Description = "Slim 4-slot card holder with RFID blocking layer. Contains student ID and hostel access card.",
+                        Type = ItemType.Lost,
+                        CategoryId = bagCat,
+                        Location = "Canara Bank Campus Extension Counter",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/tan-card-holder.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Quechua 10L Mini Hiking Backpack (Blue/Grey)",
+                        Description = "Compact daypack left on the steps of the adventure club room. Contains a folded rain poncho.",
+                        Type = ItemType.Found,
+                        CategoryId = bagCat,
+                        Location = "Adventure & Nature Club Room",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/quechua-mini-backpack.jpg",
+                        ReporterUserId = u10.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Fastrack Black Canvas Waist Pouch / Fanny Pack",
+                        Description = "Black adjustable waist pack with headphone cord opening. Forgotten during evening cricket net session.",
+                        Type = ItemType.Lost,
+                        CategoryId = bagCat,
+                        Location = "Cricket Practice Nets Pavilion",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/fastrack-waist-pouch.jpg",
+                        ReporterUserId = u4.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Black Document Messenger Bag with Lock",
+                        Description = "Synthetic leather briefcase with shoulder strap. Contains staff meeting minutes and seminar agendas.",
+                        Type = ItemType.Found,
+                        CategoryId = bagCat,
+                        Location = "Faculty Block 2 2nd Floor Corridor",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/document-messenger-bag.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Cartoon Pattern Canvas Pencil Pouch with Highlighters",
+                        Description = "Yellow zipper pouch holding 4 pastel Stabilo Boss highlighters and a Staedtler mechanical pencil.",
+                        Type = ItemType.Lost,
+                        CategoryId = bagCat,
+                        Location = "Mathematics Tutorial Room 208",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/pencil-pouch.jpg",
+                        ReporterUserId = u2.Id
+                    },
+
+                    // â”€â”€ 4. Keys & Keychains (12 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    new Item
+                    {
+                        Title = "Found: Royal Enfield Classic Bike Key with Brass Bullet Charm",
                         Description = "Single brass-accent bike ignition key with a miniature brass bullet pendant keychain.",
                         Type = ItemType.Found,
                         CategoryId = keyCat,
@@ -387,7 +679,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/enfield-bike-key.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -400,7 +692,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1609172795856-11f26a117cb3?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/hostel-room-keys.jpg",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -413,7 +705,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
-                        ImagePath = "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/yamaha-bike-key.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -426,11 +718,115 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/activa-smart-key.jpg",
                         ReporterUserId = u2.Id
                     },
+                    new Item
+                    {
+                        Title = "Found: Single Godrej Cupboard Key with Red Plastic Cap",
+                        Description = "Number '34' stamped on key shank. Found inside open optics equipment drawer.",
+                        Type = ItemType.Found,
+                        CategoryId = keyCat,
+                        Location = "Physics Optics Laboratory Drawer",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/godrej-cupboard-key.jpg",
+                        ReporterUserId = u5.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: KTM Duke 250 Ignition Key on Black Lanyard",
+                        Description = "Orange accent KTM laser-cut key with reflective wrist lanyard strap. Dropped near vehicle security barrier.",
+                        Type = ItemType.Lost,
+                        CategoryId = keyCat,
+                        Location = "Main Entrance Gate 2 Checkpoint",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/ktm-duke-key.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Bicycle Cable Lock Key with Spiral Wrist Band",
+                        Description = "Small silver key on stretchy blue coil wristband found hanging on cycle stand railing.",
+                        Type = ItemType.Found,
+                        CategoryId = keyCat,
+                        Location = "Cycle Stand near Central Canteen",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/bicycle-lock-key.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Suzuki Access 125 Key with Marvel Iron Man Keychain",
+                        Description = "Key with metallic red and gold Iron Man mask keychain. Fell out of pocket near girls parking.",
+                        Type = ItemType.Lost,
+                        CategoryId = keyCat,
+                        Location = "Girls Hostel 1 Two-Wheeler Shed",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/access-scooter-key.jpg",
+                        ReporterUserId = u3.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Heavy Brass Padlock Key Stamped 'LINK-60'",
+                        Description = "Sturdy brass key found on the gym threshold door step. Given to physical director.",
+                        Type = ItemType.Found,
+                        CategoryId = keyCat,
+                        Location = "Indoor Gymnasium Equipment Room",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/padlock-key.jpg",
+                        ReporterUserId = u4.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Hyundai i20 Smart Key Fob with Leather Sleeve",
+                        Description = "Three-button flip remote in black leather protective case with chrome ring.",
+                        Type = ItemType.Lost,
+                        CategoryId = keyCat,
+                        Location = "Faculty & Visitor Car Park (Slot B)",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/hyundai-car-key.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Pair of Yale Keys with Glow-in-Dark Astronaut Charm",
+                        Description = "Two cylinder keys on a white silicone astronaut keychain that glows light green in dark.",
+                        Type = ItemType.Found,
+                        CategoryId = keyCat,
+                        Location = "Open Air Amphitheater Row 6",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/astronaut-keychain.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Chemistry Research Cabinet Key Tagged 'CHEM-07'",
+                        Description = "Small brass cabinet key with engraved acrylic rectangular tag 'CHEM-07'.",
+                        Type = ItemType.Lost,
+                        CategoryId = keyCat,
+                        Location = "Organic Chemistry Research Annex",
+                        EventDate = DateTime.Today.AddDays(-6),
+                        CreatedAt = DateTime.UtcNow.AddDays(-6),
+                        Status = ItemStatus.Closed,
+                        ImagePath = "/images/items/cabinet-key-chem.jpg",
+                        ReporterUserId = u8.Id
+                    },
 
-                    // ── Books, Notes & Stationery ─────────────────────
+                    // â”€â”€ 5. Books, Notes & Stationery (12 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: 'Operating System Concepts' by Silberschatz (10th Ed)",
@@ -441,7 +837,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/os-concepts-textbook.jpg",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -454,7 +850,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/thermodynamics-notebook.jpg",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -467,7 +863,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/geometry-drawing-kit.jpg",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -480,11 +876,115 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/organic-chemistry-record.jpg",
                         ReporterUserId = u5.Id
                     },
+                    new Item
+                    {
+                        Title = "Found: 'Database System Concepts' by Korth (7th Edition)",
+                        Description = "Thick textbook with blue and orange cover. Name 'Arjun' written with pencil on top edge of pages.",
+                        Type = ItemType.Found,
+                        CategoryId = bookCat,
+                        Location = "CS Departmental Library Shelf 4",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/dbms-korth-textbook.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Spiral Bound A4 Charcoal Sketchbook with Drawings",
+                        Description = "Thick black cover sketchbook with charcoal architectural sketches and pencil portraits. Very sentimental value.",
+                        Type = ItemType.Lost,
+                        CategoryId = bookCat,
+                        Location = "Fine Arts Club Studio Corner",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/charcoal-sketchbook.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Parker Vector Stainless Steel Rollerball Pen",
+                        Description = "Silver chrome finish rollerball pen with arrow pocket clip found under exam desk #14.",
+                        Type = ItemType.Found,
+                        CategoryId = bookCat,
+                        Location = "Lecture Hall B1 Exam Desk 14",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/parker-pen.jpg",
+                        ReporterUserId = u1.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Higher Engineering Mathematics by B.S. Grewal (44th Ed)",
+                        Description = "Yellow-orange cover textbook with university bookstore invoice slipped inside page 200.",
+                        Type = ItemType.Lost,
+                        CategoryId = bookCat,
+                        Location = "First Year Common Lecture Hall 12",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/maths-grewal-textbook.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Clear Acrylic 30cm Technical Ruler & Set Square",
+                        Description = "Professional bevelled edge drafting ruler inside plastic sheath left on drafting board.",
+                        Type = ItemType.Found,
+                        CategoryId = bookCat,
+                        Location = "Civil CAD & Drafting Lab Desk 3",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/acrylic-ruler-set.jpg",
+                        ReporterUserId = u4.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Machine Learning Lecture Slides Binder with Hand Notes",
+                        Description = "White two-ring binder containing 120 printed slides on Neural Networks with purple highlighter remarks.",
+                        Type = ItemType.Lost,
+                        CategoryId = bookCat,
+                        Location = "Artificial Intelligence Research Lab 4",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/ml-lecture-printouts.jpg",
+                        ReporterUserId = u10.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Medical Microbiology Illustrated Color Textbook",
+                        Description = "Hardbound medical textbook left on the low reading table in pharmacy wing.",
+                        Type = ItemType.Found,
+                        CategoryId = bookCat,
+                        Location = "Pharmacy & Allied Health Library Hall",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/microbiology-textbook.jpg",
+                        ReporterUserId = u5.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Black PU Leather Personal Journal / 2026 Daily Planner",
+                        Description = "A5 diary with ribbon bookmark and gold foil year '2026' on front cover. Contains internship notes.",
+                        Type = ItemType.Lost,
+                        CategoryId = bookCat,
+                        Location = "Campus Placement Training Lounge",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Closed,
+                        ImagePath = "/images/items/pu-leather-diary.jpg",
+                        ReporterUserId = u2.Id
+                    },
 
-                    // ── Bottles & Lunch Boxes ─────────────────────────
+                    // â”€â”€ 6. Bottles & Lunch Boxes (10 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: Milton 1000ml Stainless Steel Thermosteel Flask",
@@ -495,7 +995,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/milton-steel-flask.jpg",
                         ReporterUserId = u2.Id
                     },
                     new Item
@@ -508,7 +1008,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/tupperware-lunch-set.jpg",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -517,15 +1017,106 @@ namespace BackToYou.Data
                         Description = "Matte black hiking sipper with measurement marks and lockable flip cap.",
                         Type = ItemType.Found,
                         CategoryId = bottleCat,
-                        Location = "Cricket Pavilion Pavilion Seating",
+                        Location = "Cricket Pavilion Seating",
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
-                        ImagePath = "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/decathlon-sipper.jpg",
                         ReporterUserId = u4.Id
                     },
+                    new Item
+                    {
+                        Title = "Lost: Cello Puro Steel Insulated Water Bottle (Cyan Blue 900ml)",
+                        Description = "Cyan blue metallic bottle with black handle cap. Has a small dent near the bottom rim.",
+                        Type = ItemType.Lost,
+                        CategoryId = bottleCat,
+                        Location = "Tennis Court Perimeter Benches",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/cello-puro-cyan-bottle.jpg",
+                        ReporterUserId = u1.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Signoraware Compact Glass Tiffin with Red Insulated Bag",
+                        Description = "Two borosilicate glass rectangular containers in red zipper carry pouch with cutlery.",
+                        Type = ItemType.Found,
+                        CategoryId = bottleCat,
+                        Location = "ECE Department Staff & Student Lounge",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/signoraware-glass-tiffin.jpg",
+                        ReporterUserId = u2.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Borosil Hydra Trek Flask (Army Green 750ml)",
+                        Description = "Olive green insulated bottle with loop handle. Has a vinyl mountain sticker on the side.",
+                        Type = ItemType.Lost,
+                        CategoryId = bottleCat,
+                        Location = "Library Lawn Tree Shade",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/borosil-army-green-flask.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Protein Shaker Bottle with Wire Whisk Ball (Smoke Grey)",
+                        Description = "BPA-free translucent shaker with red flip lid and stainless steel mixing sphere.",
+                        Type = ItemType.Found,
+                        CategoryId = bottleCat,
+                        Location = "Indoor Gymnasium Free Weights Corner",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/protein-shaker-bottle.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Stainless Steel Coffee Travel Tumbler with Straw",
+                        Description = "Double wall stainless steel insulated travel mug with splash-resistant lid.",
+                        Type = ItemType.Lost,
+                        CategoryId = bottleCat,
+                        Location = "Management Studies Department Verandah",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/starbucks-tumbler.jpg",
+                        ReporterUserId = u8.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Milton Double-Wall Insulated Steel Flask (Silver 500ml)",
+                        Description = "Slim metallic flask found behind backstage curtain during tech fest preparations.",
+                        Type = ItemType.Found,
+                        CategoryId = bottleCat,
+                        Location = "Main Auditorium Backstage Dressing Room",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/milton-doublewall-flask.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Yellow Sipper Bottle with Fruit Print Pattern",
+                        Description = "Bright yellow sipper bottle with carrying strap. Forgotten near faculty guest quarters.",
+                        Type = ItemType.Lost,
+                        CategoryId = bottleCat,
+                        Location = "Faculty Guest House Lawn Bench",
+                        EventDate = DateTime.Today.AddDays(-6),
+                        CreatedAt = DateTime.UtcNow.AddDays(-6),
+                        Status = ItemStatus.Closed,
+                        ImagePath = "/images/items/kids-pattern-sipper.jpg",
+                        ReporterUserId = u10.Id
+                    },
 
-                    // ── Clothing & Accessories ────────────────────────
+                    // â”€â”€ 7. Clothing & Accessories (12 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: Fastrack Polarized Aviator Sunglasses with Case",
@@ -536,7 +1127,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/fastrack-sunglasses.jpg",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -549,7 +1140,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/columbia-windcheater.jpg",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -562,7 +1153,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.UnderClaim,
-                        ImagePath = "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/titan-neo-watch.jpg",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -575,11 +1166,115 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/rayban-eyeglasses.jpg",
                         ReporterUserId = u2.Id
                     },
+                    new Item
+                    {
+                        Title = "Found: Fastrack Casual Watch with Denim Fabric Strap",
+                        Description = "Youth edition casual analog watch with blue denim strap and silver buckle.",
+                        Type = ItemType.Found,
+                        CategoryId = clothCat,
+                        Location = "Student Activity Center Indoor Games Room",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/fastrack-denim-watch.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Maroon University Varsity Fleece Hoodie (Size L)",
+                        Description = "Comfortable maroon pullover hoodie with front kangaroo pocket and white collegiate letters.",
+                        Type = ItemType.Lost,
+                        CategoryId = clothCat,
+                        Location = "Food Court Mezzanine Seating",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/harvard-maroon-hoodie.jpg",
+                        ReporterUserId = u6.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Grey Knitted Woolen Scarf & Beanie Cap",
+                        Description = "Warm winter charcoal grey scarf left draped over wooden bench along running track.",
+                        Type = ItemType.Found,
+                        CategoryId = clothCat,
+                        Location = "Early Morning Sports Track Pavilion",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/woolen-scarf-beanie.jpg",
+                        ReporterUserId = u3.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Fossil Minimalist Slim Brown Leather Watch",
+                        Description = "White face analog watch with tan leather band. Has a very small scratch on bezel at 6 o'clock position.",
+                        Type = ItemType.Lost,
+                        CategoryId = clothCat,
+                        Location = "Placement Cell Interview Cabin 2",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/fossil-leather-watch.jpg",
+                        ReporterUserId = u8.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Casio Vintage Gold-Tone Digital Watch (A168)",
+                        Description = "Classic gold stainless steel digital watch with Illuminator teal backlight. In full working order.",
+                        Type = ItemType.Found,
+                        CategoryId = clothCat,
+                        Location = "Chemistry Department Water Dispenser",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/casio-vintage-gold.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: White Cotton Lab Apron / Doctor's Coat with Name Tag",
+                        Description = "Full sleeve laboratory apron with embroidered name tag 'Dr. Sneha' and college medical crest.",
+                        Type = ItemType.Lost,
+                        CategoryId = clothCat,
+                        Location = "Biotech Pathology Lab Station B",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/white-lab-apron.jpg",
+                        ReporterUserId = u5.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Black Baseball Cap with Embroidered 'NY' Logo",
+                        Description = "Curved brim sports cap found on the sandy spectator mound by the volleyball court.",
+                        Type = ItemType.Found,
+                        CategoryId = clothCat,
+                        Location = "Volleyball Sand Court Boundary",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/baseball-ny-cap.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Transparent Cat-Eye Reading Spectacles with Pink Case",
+                        Description = "Clear acetate frame with pink tint arms in a magnetic snap triangular case.",
+                        Type = ItemType.Lost,
+                        CategoryId = clothCat,
+                        Location = "Language Learning Lab Computer Desk 7",
+                        EventDate = DateTime.Today.AddDays(-6),
+                        CreatedAt = DateTime.UtcNow.AddDays(-6),
+                        Status = ItemStatus.Closed,
+                        ImagePath = "/images/items/cat-eye-spectacles.jpg",
+                        ReporterUserId = u10.Id
+                    },
 
-                    // ── Miscellaneous / Others ────────────────────────
+                    // â”€â”€ 8. Miscellaneous / Others (10 Items) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     new Item
                     {
                         Title = "Found: Yonex Nanoray 10F Badminton Racket with Cover",
@@ -590,7 +1285,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
-                        ImagePath = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/yonex-badminton-racket.jpg",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -603,21 +1298,127 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-6),
                         CreatedAt = DateTime.UtcNow.AddDays(-6),
                         Status = ItemStatus.Closed,
-                        ImagePath = "https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?auto=format&fit=crop&w=800&q=80",
+                        ImagePath = "/images/items/compact-plaid-umbrella.jpg",
                         ReporterUserId = u3.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Cosco Light Tennis Cricket Bat with White Rubber Grip",
+                        Description = "Kashmir willow training bat found leaning against the fence behind batting nets.",
+                        Type = ItemType.Found,
+                        CategoryId = miscCat,
+                        Location = "Cricket Ground Net 3",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/cosco-cricket-bat.jpg",
+                        ReporterUserId = u4.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Yamaha Acoustic Guitar Capo & Dunlop Plectrum Case",
+                        Description = "Black quick-change spring capo with a small tin containing four 0.88mm guitar picks.",
+                        Type = ItemType.Lost,
+                        CategoryId = miscCat,
+                        Location = "Music Club Rehearsal Room (Room 12)",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/guitar-capo-picks.jpg",
+                        ReporterUserId = u1.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Studds Matte Black Bicycle Riding Helmet",
+                        Description = "Aerodynamic cycling helmet with adjustable chin strap and rear red reflector.",
+                        Type = ItemType.Found,
+                        CategoryId = miscCat,
+                        Location = "Cycle Stand near Gate 1",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/studds-bicycle-helmet.jpg",
+                        ReporterUserId = adm.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Dark Blue Automatic Windproof Large Umbrella",
+                        Description = "Golf size sturdy umbrella with curved foam grip handle and fiberglass ribs.",
+                        Type = ItemType.Lost,
+                        CategoryId = miscCat,
+                        Location = "Guest House Front Porch Umbrella Stand",
+                        EventDate = DateTime.Today.AddDays(-3),
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/windproof-large-umbrella.jpg",
+                        ReporterUserId = u7.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: 3M Littmann Classic III Medical Stethoscope (Black)",
+                        Description = "Dual-sided chestpiece medical stethoscope in clean condition with personalized ID ring near bell.",
+                        Type = ItemType.Found,
+                        CategoryId = miscCat,
+                        Location = "Campus Medical Inspection Room",
+                        EventDate = DateTime.Today.AddDays(-1),
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        Status = ItemStatus.UnderClaim,
+                        ImagePath = "/images/items/medical-stethoscope.jpg",
+                        ReporterUserId = u5.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Canon 58mm Camera Lens Front Cap",
+                        Description = "Black pinch-clip lens cover with white Canon emblem. Left on tripod table during college fest shoot.",
+                        Type = ItemType.Lost,
+                        CategoryId = miscCat,
+                        Location = "Photography Club Studio Desk",
+                        EventDate = DateTime.Today.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/camera-lens-cap.jpg",
+                        ReporterUserId = u8.Id
+                    },
+                    new Item
+                    {
+                        Title = "Found: Magnetic 3x3 Speed Cube with Stickerless Bright Tiles",
+                        Description = "Smooth turning competition Rubik's cube found sitting on the indoor table tennis bench.",
+                        Type = ItemType.Found,
+                        CategoryId = miscCat,
+                        Location = "Student Recreation Room Table 2",
+                        EventDate = DateTime.Today.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/rubiks-cube.jpg",
+                        ReporterUserId = u9.Id
+                    },
+                    new Item
+                    {
+                        Title = "Lost: Purple Eco-Friendly Yoga Mat in Black Mesh Bag",
+                        Description = "6mm cushioned anti-skid workout mat with carrying sling strap. Forgotten after morning fitness session.",
+                        Type = ItemType.Lost,
+                        CategoryId = miscCat,
+                        Location = "Open Yoga Lawn near Botanical Garden",
+                        EventDate = DateTime.Today.AddDays(-5),
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = ItemStatus.Reported,
+                        ImagePath = "/images/items/yoga-mat-bag.jpg",
+                        ReporterUserId = u10.Id
                     }
                 };
 
                 await context.Items.AddRangeAsync(items);
                 await context.SaveChangesAsync();
 
-                // 6. Seed Sample Claims with Proof Images and Remarks
+                // 6. Seed Realistic Claims with Proof Images and Admin Feedback
                 var airpodsItem = items.First(i => i.Title.Contains("AirPods"));
                 var idCardItem = items.First(i => i.Title.Contains("Student ID Smartcard"));
                 var usbDriveItem = items.First(i => i.Title.Contains("SanDisk Ultra"));
                 var yamahaKeyItem = items.First(i => i.Title.Contains("Yamaha FZ"));
                 var titanWatchItem = items.First(i => i.Title.Contains("Titan Neo Quartz"));
                 var sbiCardItem = items.First(i => i.Title.Contains("SBI Global"));
+                var ipadItem = items.First(i => i.Title.Contains("iPad 9th Gen"));
+                var stethoscopeItem = items.First(i => i.Title.Contains("Littmann Classic III"));
 
                 var claims = new List<Claim>
                 {
@@ -626,7 +1427,7 @@ namespace BackToYou.Data
                         ItemId = airpodsItem.Id,
                         ClaimerUserId = u1.Id, // Rahul Sharma
                         DescriptionProof = "My AirPods case has an engraving 'PP 2024' on the front lid and the right AirPod has a small hairline scratch near the bottom sensor. Connected Bluetooth device name in my iPhone is 'Rahul's AirPods'.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/airpods-pro.jpg",
                         SubmittedAt = DateTime.UtcNow.AddHours(-18),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -636,7 +1437,7 @@ namespace BackToYou.Data
                         ItemId = idCardItem.Id,
                         ClaimerUserId = u3.Id, // Ananya Reddy
                         DescriptionProof = "It belongs to my batchmate Harish (Roll No EC2023088). I am submitting on his behalf and he can produce the original college fee receipt and aadhaar verification.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1589330694653-dad6d3240a2b?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/student-id-smartcard.jpg",
                         SubmittedAt = DateTime.UtcNow.AddHours(-10),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -646,7 +1447,7 @@ namespace BackToYou.Data
                         ItemId = usbDriveItem.Id,
                         ClaimerUserId = u4.Id, // Vikram Singh
                         DescriptionProof = "The pen drive has two partitions: 'VIKRAM_STUDY' and 'PROJECTS'. Contains AutoCAD drawings titled 'Bridge_Deck_Analysis_v2.dwg'.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1618410320928-25228d811631?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/sandisk-pendrive.jpg",
                         SubmittedAt = DateTime.UtcNow.AddDays(-5),
                         ReviewedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ClaimStatus.Approved,
@@ -657,7 +1458,7 @@ namespace BackToYou.Data
                         ItemId = yamahaKeyItem.Id,
                         ClaimerUserId = u1.Id, // Rahul Sharma
                         DescriptionProof = "Yamaha key has ignition code stamped 'Y-942'. I have the vehicle RC document showing registration TS09-EA-4122 in my father's name.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/yamaha-bike-key.jpg",
                         SubmittedAt = DateTime.UtcNow.AddDays(-3),
                         ReviewedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ClaimStatus.Approved,
@@ -668,7 +1469,7 @@ namespace BackToYou.Data
                         ItemId = titanWatchItem.Id,
                         ClaimerUserId = u2.Id, // Priya Patel
                         DescriptionProof = "Watch was a birthday gift from my elder brother. The stainless steel caseback has a serial engraving ending in '892'.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/titan-neo-watch.jpg",
                         SubmittedAt = DateTime.UtcNow.AddHours(-6),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -678,11 +1479,31 @@ namespace BackToYou.Data
                         ItemId = sbiCardItem.Id,
                         ClaimerUserId = u5.Id, // Sneha Deshmukh
                         DescriptionProof = "The debit card has cardholder name printed in capital letters matching my SBI YONO profile screenshot.",
-                        ProofImagePath = "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80",
+                        ProofImagePath = "/images/items/sbi-debit-card.jpg",
                         SubmittedAt = DateTime.UtcNow.AddDays(-1),
                         ReviewedAt = DateTime.UtcNow.AddHours(-12),
                         Status = ClaimStatus.Rejected,
                         AdminRemarks = "Name on physical debit card (R. K. Verma) does not match student applicant profile. Please visit branch if this was an authorized family card."
+                    },
+                    new Claim
+                    {
+                        ItemId = ipadItem.Id,
+                        ClaimerUserId = u6.Id, // Arjun Nair
+                        DescriptionProof = "iPad passcode is 6 digits ending in 88. Apple ID matches arjun.nair@campus.edu. Lock screen notification shows unread Canvas assignments.",
+                        ProofImagePath = "/images/items/ipad-9thgen.jpg",
+                        SubmittedAt = DateTime.UtcNow.AddHours(-8),
+                        Status = ClaimStatus.Pending,
+                        AdminRemarks = null
+                    },
+                    new Claim
+                    {
+                        ItemId = stethoscopeItem.Id,
+                        ClaimerUserId = u5.Id, // Sneha Deshmukh
+                        DescriptionProof = "Engraved with initials 'S.D.' on the binaural tube clamp. Belonging to final year clinical biochemistry lab kit.",
+                        ProofImagePath = "/images/items/medical-stethoscope.jpg",
+                        SubmittedAt = DateTime.UtcNow.AddHours(-4),
+                        Status = ClaimStatus.Pending,
+                        AdminRemarks = null
                     }
                 };
 
