@@ -117,10 +117,12 @@ namespace BackToYou.Data
             var clothCat = allCategories.FirstOrDefault(c => c.Name.Contains("Clothing"))?.Id ?? allCategories[0].Id;
             var miscCat = allCategories.FirstOrDefault(c => c.Name.Contains("Miscellaneous"))?.Id ?? allCategories[0].Id;
 
-            // 5. Seed Realistic Dataset (35 Items + Claims) if database has fewer than 15 items
-            if (await context.Items.CountAsync() < 15 && studentUsers.Count >= 2 && adminUser != null)
+            // 5. Seed Realistic Dataset with Images (35 Items + Claims)
+            // Re-seed if items lack images or dataset has fewer than 20 items with photos
+            bool needsPhotos = !await context.Items.AnyAsync(i => i.ImagePath != null && i.ImagePath != "");
+            if ((await context.Items.CountAsync() < 15 || needsPhotos) && studentUsers.Count >= 2 && adminUser != null)
             {
-                // Clear any partial old test items to provide a pristine dataset
+                // Clear any old items to provide the complete photo dataset
                 context.Claims.RemoveRange(context.Claims);
                 context.Items.RemoveRange(context.Items);
                 await context.SaveChangesAsync();
@@ -145,6 +147,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.UnderClaim,
+                        ImagePath = "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u2.Id
                     },
                     new Item
@@ -157,6 +160,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -169,6 +173,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -181,6 +186,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -193,6 +199,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -205,6 +212,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-6),
                         CreatedAt = DateTime.UtcNow.AddDays(-6),
                         Status = ItemStatus.Claimed,
+                        ImagePath = "https://images.unsplash.com/photo-1618410320928-25228d811631?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -217,6 +225,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -229,6 +238,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-7),
                         CreatedAt = DateTime.UtcNow.AddDays(-7),
                         Status = ItemStatus.Closed,
+                        ImagePath = "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
 
@@ -243,6 +253,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.UnderClaim,
+                        ImagePath = "https://images.unsplash.com/photo-1589330694653-dad6d3240a2b?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -255,6 +266,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -267,6 +279,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
+                        ImagePath = "https://images.unsplash.com/photo-1584697964190-705b893a2095?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -279,6 +292,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -291,6 +305,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.UnderClaim,
+                        ImagePath = "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
 
@@ -305,6 +320,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -317,6 +333,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -329,6 +346,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Claimed,
+                        ImagePath = "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u2.Id
                     },
                     new Item
@@ -341,6 +359,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1577733966973-d680bffd2e80?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -353,6 +372,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1597484661643-2f5fef640dd1?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     },
 
@@ -367,6 +387,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -379,6 +400,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1609172795856-11f26a117cb3?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -391,6 +413,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
+                        ImagePath = "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -403,6 +426,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u2.Id
                     },
 
@@ -417,6 +441,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -429,6 +454,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -441,6 +467,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -453,6 +480,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-5),
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u5.Id
                     },
 
@@ -467,6 +495,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u2.Id
                     },
                     new Item
@@ -479,6 +508,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     },
                     new Item
@@ -491,6 +521,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Claimed,
+                        ImagePath = "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
 
@@ -505,6 +536,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-1),
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u1.Id
                     },
                     new Item
@@ -517,6 +549,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-3),
                         CreatedAt = DateTime.UtcNow.AddDays(-3),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u4.Id
                     },
                     new Item
@@ -529,6 +562,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.UnderClaim,
+                        ImagePath = "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u5.Id
                     },
                     new Item
@@ -541,6 +575,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u2.Id
                     },
 
@@ -555,6 +590,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-2),
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ItemStatus.Reported,
+                        ImagePath = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = adm.Id
                     },
                     new Item
@@ -567,6 +603,7 @@ namespace BackToYou.Data
                         EventDate = DateTime.Today.AddDays(-6),
                         CreatedAt = DateTime.UtcNow.AddDays(-6),
                         Status = ItemStatus.Closed,
+                        ImagePath = "https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?auto=format&fit=crop&w=800&q=80",
                         ReporterUserId = u3.Id
                     }
                 };
@@ -574,7 +611,7 @@ namespace BackToYou.Data
                 await context.Items.AddRangeAsync(items);
                 await context.SaveChangesAsync();
 
-                // 6. Seed Sample Claims with various statuses (Pending, Approved, Rejected)
+                // 6. Seed Sample Claims with Proof Images and Remarks
                 var airpodsItem = items.First(i => i.Title.Contains("AirPods"));
                 var idCardItem = items.First(i => i.Title.Contains("Student ID Smartcard"));
                 var usbDriveItem = items.First(i => i.Title.Contains("SanDisk Ultra"));
@@ -589,6 +626,7 @@ namespace BackToYou.Data
                         ItemId = airpodsItem.Id,
                         ClaimerUserId = u1.Id, // Rahul Sharma
                         DescriptionProof = "My AirPods case has an engraving 'PP 2024' on the front lid and the right AirPod has a small hairline scratch near the bottom sensor. Connected Bluetooth device name in my iPhone is 'Rahul's AirPods'.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddHours(-18),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -598,6 +636,7 @@ namespace BackToYou.Data
                         ItemId = idCardItem.Id,
                         ClaimerUserId = u3.Id, // Ananya Reddy
                         DescriptionProof = "It belongs to my batchmate Harish (Roll No EC2023088). I am submitting on his behalf and he can produce the original college fee receipt and aadhaar verification.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1589330694653-dad6d3240a2b?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddHours(-10),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -607,6 +646,7 @@ namespace BackToYou.Data
                         ItemId = usbDriveItem.Id,
                         ClaimerUserId = u4.Id, // Vikram Singh
                         DescriptionProof = "The pen drive has two partitions: 'VIKRAM_STUDY' and 'PROJECTS'. Contains AutoCAD drawings titled 'Bridge_Deck_Analysis_v2.dwg'.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1618410320928-25228d811631?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddDays(-5),
                         ReviewedAt = DateTime.UtcNow.AddDays(-4),
                         Status = ClaimStatus.Approved,
@@ -617,6 +657,7 @@ namespace BackToYou.Data
                         ItemId = yamahaKeyItem.Id,
                         ClaimerUserId = u1.Id, // Rahul Sharma
                         DescriptionProof = "Yamaha key has ignition code stamped 'Y-942'. I have the vehicle RC document showing registration TS09-EA-4122 in my father's name.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddDays(-3),
                         ReviewedAt = DateTime.UtcNow.AddDays(-2),
                         Status = ClaimStatus.Approved,
@@ -627,6 +668,7 @@ namespace BackToYou.Data
                         ItemId = titanWatchItem.Id,
                         ClaimerUserId = u2.Id, // Priya Patel
                         DescriptionProof = "Watch was a birthday gift from my elder brother. The stainless steel caseback has a serial engraving ending in '892'.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddHours(-6),
                         Status = ClaimStatus.Pending,
                         AdminRemarks = null
@@ -636,6 +678,7 @@ namespace BackToYou.Data
                         ItemId = sbiCardItem.Id,
                         ClaimerUserId = u5.Id, // Sneha Deshmukh
                         DescriptionProof = "The debit card has cardholder name printed in capital letters matching my SBI YONO profile screenshot.",
+                        ProofImagePath = "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=800&q=80",
                         SubmittedAt = DateTime.UtcNow.AddDays(-1),
                         ReviewedAt = DateTime.UtcNow.AddHours(-12),
                         Status = ClaimStatus.Rejected,
