@@ -64,6 +64,11 @@
                                 <i class="bi bi-check-circle text-success opacity-75"></i>Report Found
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="AntiRagging" asp-action="Index">
+                                <i class="bi bi-shield-check text-warning opacity-75"></i>Anti-Ragging
+                            </a>
+                        </li>
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
@@ -98,6 +103,11 @@
                                     <li>
                                         <a class="dropdown-item py-2" asp-controller="Admin" asp-action="Dashboard">
                                             <i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Admin" asp-action="AntiRagging">
+                                            <i class="bi bi-shield-exclamation text-danger me-2"></i>Anti-Ragging Desk
                                         </a>
                                     </li>
                                     <li>
@@ -219,6 +229,7 @@
                         <li><a class="footer-link" asp-controller="Items" asp-action="Index">Browse All Items</a></li>
                         <li><a class="footer-link" asp-controller="Items" asp-action="Create" asp-route-type="Lost">Report Lost Item</a></li>
                         <li><a class="footer-link" asp-controller="Items" asp-action="Create" asp-route-type="Found">Report Found Item</a></li>
+                        <li><a class="footer-link text-warning" asp-controller="AntiRagging" asp-action="Index"><i class="bi bi-shield-check me-1"></i>Anti-Ragging Desk</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-3 col-6">

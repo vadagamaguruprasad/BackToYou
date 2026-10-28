@@ -20,4 +20,23 @@ namespace BackToYou.Models.Entities
         Approved = 2,
         Rejected = 3
     }
+
+    public enum RaggingType
+    {
+        Physical = 1,
+        Verbal = 2,
+        Emotional = 3,         // Mental / Emotional Harassment
+        Cyberbullying = 4,
+        Threats = 5,
+        Discrimination = 6,
+        Other = 7
+    }
+
+    public enum ComplaintStatus
+    {
+        Submitted = 1,
+        UnderReview = 2,
+        ActionInProgress = 3,
+        Resolved = 4
+    }
 }

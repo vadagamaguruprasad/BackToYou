@@ -1,0 +1,221 @@
+@model BackToYou.Models.ViewModels.CreateComplaintViewModel
+@{
+    ViewData["Title"] = "File Anti-Ragging Complaint";
+}
+
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Anti-Ragging</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">File Complaint</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-3">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div>
+                    <h1 class="page-title mb-1">File Confidential Complaint</h1>
+                    <p class="section-subtitle mb-0">Your report will be submitted directly to the Anti-Ragging Committee under strict confidentiality.</p>
+                </div>
+            </div>
+
+            <!-- Emergency Warning Callout -->
+            <div class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-4" role="alert">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="fs-2 text-danger lh-1">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="alert-heading fw-bold mb-1 text-danger">This form is NOT for Immediate Emergency Situations</h6>
+                        <p class="small text-dark mb-2">
+                            If you or anyone else is experiencing an ongoing physical threat, violent assault, or immediate confinement, call the <strong>National Anti-Ragging Helpline: 1800-180-5522 (24x7 Toll-Free)</strong> or <strong>Emergency Police: 112</strong> immediately.
+                        </p>
+                        <div class="small text-muted">
+                            <i class="bi bi-lock-fill text-danger me-1"></i> Submissions through this form are logged securely in our confidential database and are never displayed on public pages or lost-and-found listings.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                <form asp-action="FileComplaint" method="post" id="complaintForm">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-4" role="alert"></div>
+
+                    <!-- Section 1: Student Information -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                            <h5 class="fw-bold mb-0 text-dark">Complainant Information</h5>
+                        </div>
+                        <div class="alert alert-light border small text-muted mb-3">
+                            <i class="bi bi-info-circle text-primary me-1"></i>
+                            <strong>Privacy Guarantee:</strong> Your identity will be kept strictly confidential and shared only with authorized committee investigators. You may omit your name to file anonymously; however, providing your Roll Number is recommended so you can securely track the complaint status.
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="StudentName" class="form-label fw-semibold">
+                                    Student Full Name <span class="text-muted fw-normal small">(Optional for anonymity)</span>
+                                </label>
+                                <input asp-for="StudentName" class="form-control" placeholder="Leave blank if you wish to remain anonymous" />
+                                <span asp-validation-for="StudentName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="RollNumber" class="form-label fw-semibold">
+                                    Roll Number / Student ID <span class="text-muted fw-normal small">(Optional / for status tracking)</span>
+                                </label>
+                                <input asp-for="RollNumber" class="form-control" placeholder="e.g. 21CS045" />
+                                <div class="form-text small text-muted">Used as verification key when tracking this complaint.</div>
+                                <span asp-validation-for="RollNumber" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ContactPhone" class="form-label fw-semibold">
+                                    Contact Phone <span class="text-muted fw-normal small">(Optional for confidential follow-up)</span>
+                                </label>
+                                <input asp-for="ContactPhone" class="form-control" placeholder="e.g. +91 98765 43210" />
+                                <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ContactEmail" class="form-label fw-semibold">
+                                    Contact Email <span class="text-muted fw-normal small">(Optional for updates)</span>
+                                </label>
+                                <input asp-for="ContactEmail" class="form-control" placeholder="e.g. student@college.edu" />
+                                <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Incident Particulars -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                            <h5 class="fw-bold mb-0 text-dark">Incident Details</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="RaggingType" class="form-label fw-semibold">
+                                    Type of Ragging <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="RaggingType" class="form-select" required>
+                                    <option value="">-- Select Type --</option>
+                                    <option value="1">Physical Harassment</option>
+                                    <option value="2">Verbal Harassment</option>
+                                    <option value="3">Mental / Emotional Harassment</option>
+                                    <option value="4">Cyberbullying / Online Harassment</option>
+                                    <option value="5">Threats / Intimidation</option>
+                                    <option value="6">Discrimination / Bias</option>
+                                    <option value="7">Other Form of Harassment</option>
+                                </select>
+                                <span asp-validation-for="RaggingType" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="IncidentDate" class="form-label fw-semibold">
+                                    Date of Incident <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="IncidentDate" class="form-control" type="date" 
+                                       max="@DateTime.Today.ToString("yyyy-MM-dd")" 
+                                       value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                <span asp-validation-for="IncidentDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Location" class="form-label fw-semibold">
+                                    Location on Campus <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Location" class="form-control" placeholder="e.g. Hostel Block B, Cafeteria, Library" required />
+                                <span asp-validation-for="Location" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label fw-semibold">
+                                    Detailed Description of Incident <span class="text-danger">*</span>
+                                </label>
+                                <textarea asp-for="Description" rows="5" class="form-control" 
+                                          placeholder="Please explain what happened, who was involved, time of day, what was said or done, and any context that will help the inquiry committee..." required></textarea>
+                                <div class="form-text small text-muted">Please provide as much factual detail as possible (minimum 10 characters).</div>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Accused and Witness Details (Optional) -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                            <h5 class="fw-bold mb-0 text-dark">Accused Persons &amp; Witnesses</h5>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="AccusedDetails" class="form-label fw-semibold">
+                                    Accused Person(s) Details <span class="text-muted fw-normal small">(Optional)</span>
+                                </label>
+                                <textarea asp-for="AccusedDetails" rows="3" class="form-control" 
+                                          placeholder="Names, nicknames, year/branch, hostel room numbers, or any physical identifiers if known..."></textarea>
+                                <span asp-validation-for="AccusedDetails" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Witnesses" class="form-label fw-semibold">
+                                    Witness Details <span class="text-muted fw-normal small">(Optional)</span>
+                                </label>
+                                <textarea asp-for="Witnesses" rows="3" class="form-control" 
+                                          placeholder="Names, room numbers, or contacts of any fellow students, wardens, or staff who witnessed the incident..."></textarea>
+                                <span asp-validation-for="Witnesses" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Safety & Emergency Acknowledgment -->
+                    <div class="mb-4 p-4 rounded-3 bg-light border">
+                        <div class="form-check">
+                            <input asp-for="EmergencyAcknowledged" class="form-check-input" type="checkbox" id="emergencyAckCheck" required />
+                            <label class="form-check-label fw-semibold text-dark" for="emergencyAckCheck">
+                                I confirm this submission is an institutional grievance report and NOT an active emergency. If I am in immediate bodily danger, I will call the National Helpline (1800-180-5522) or campus security directly. <span class="text-danger">*</span>
+                            </label>
+                        </div>
+                        <span asp-validation-for="EmergencyAcknowledged" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-2">
+                        <a asp-action="Index" class="btn btn-secondary px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5 fw-semibold shadow-sm" id="submitBtn">
+                            <i class="bi bi-send-check me-2"></i> Submit Confidential Complaint
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('complaintForm').addEventListener('submit', function (e) {
+            if (this.checkValidity()) {
+                const btn = document.getElementById('submitBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Submitting Securely...';
+            }
+        });
+    </script>
+}

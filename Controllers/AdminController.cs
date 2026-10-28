@@ -31,6 +31,8 @@ namespace BackToYou.Controllers
                 TotalPendingClaims = await _context.Claims.CountAsync(c => c.Status == ClaimStatus.Pending),
                 TotalApprovedClaims = await _context.Claims.CountAsync(c => c.Status == ClaimStatus.Approved),
                 TotalRegisteredUsers = await _userManager.Users.CountAsync(),
+                TotalRaggingComplaints = await _context.AntiRaggingComplaints.CountAsync(),
+                PendingRaggingComplaints = await _context.AntiRaggingComplaints.CountAsync(c => c.Status == ComplaintStatus.Submitted || c.Status == ComplaintStatus.UnderReview),
                 RecentItems = await _context.Items
                     .Include(i => i.Category)
                     .Include(i => i.Reporter)
@@ -197,6 +199,78 @@ namespace BackToYou.Controllers
             }
 
             return View(userViewModels);
+        }
+
+        // GET: /Admin/AntiRagging
+        public async Task<IActionResult> AntiRagging(ComplaintStatus? status = null, RaggingType? type = null, string? search = null)
+        {
+            var query = _context.AntiRaggingComplaints.AsQueryable();
+
+            if (status.HasValue)
+            {
+                query = query.Where(c => c.Status == status.Value);
+            }
+
+            if (type.HasValue)
+            {
+                query = query.Where(c => c.RaggingType == type.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(c => c.ReferenceNumber.Contains(s) || c.Location.Contains(s) || (c.RollNumber != null && c.RollNumber.Contains(s)));
+            }
+
+            var complaints = await query.OrderByDescending(c => c.CreatedAt).ToListAsync();
+
+            var vm = new AdminComplaintListViewModel
+            {
+                Complaints = complaints,
+                TotalCount = await _context.AntiRaggingComplaints.CountAsync(),
+                SubmittedCount = await _context.AntiRaggingComplaints.CountAsync(c => c.Status == ComplaintStatus.Submitted),
+                UnderReviewCount = await _context.AntiRaggingComplaints.CountAsync(c => c.Status == ComplaintStatus.UnderReview),
+                InProgressCount = await _context.AntiRaggingComplaints.CountAsync(c => c.Status == ComplaintStatus.ActionInProgress),
+                ResolvedCount = await _context.AntiRaggingComplaints.CountAsync(c => c.Status == ComplaintStatus.Resolved),
+                SelectedStatus = status,
+                SelectedType = type,
+                SearchQuery = search
+            };
+
+            return View(vm);
+        }
+
+        // GET: /Admin/AntiRaggingDetail/{id}
+        public async Task<IActionResult> AntiRaggingDetail(int id)
+        {
+            var complaint = await _context.AntiRaggingComplaints.FindAsync(id);
+            if (complaint == null)
+            {
+                return NotFound();
+            }
+
+            return View(complaint);
+        }
+
+        // POST: /Admin/UpdateAntiRaggingStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateAntiRaggingStatus(int id, ComplaintStatus status, string? actionTaken)
+        {
+            var complaint = await _context.AntiRaggingComplaints.FindAsync(id);
+            if (complaint == null)
+            {
+                return NotFound();
+            }
+
+            complaint.Status = status;
+            complaint.ActionTaken = actionTaken?.Trim();
+            complaint.UpdatedAt = DateTime.UtcNow;
+            complaint.ReviewedBy = User.Identity?.Name ?? "Admin Coordinator";
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Complaint #{complaint.ReferenceNumber} status updated to {status}.";
+            return RedirectToAction(nameof(AntiRaggingDetail), new { id });
         }
     }
 }

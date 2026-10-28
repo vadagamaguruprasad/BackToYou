@@ -1,0 +1,114 @@
+@model BackToYou.Models.ViewModels.ComplaintConfirmationViewModel
+@{
+    ViewData["Title"] = "Complaint Confirmation";
+}
+
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <!-- Success Card -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white text-center p-4 p-md-5 mb-4">
+                <!-- Icon -->
+                <div class="mx-auto mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mx-auto mb-2 fw-semibold">
+                    Confidential Report Filed
+                </span>
+                <h2 class="fw-bold text-dark mb-2">Complaint Submitted Successfully</h2>
+                <p class="text-muted mb-4">
+                    Your grievance has been securely stored in our confidential registry and placed under immediate review by the Anti-Ragging Committee.
+                </p>
+
+                <!-- Reference Number Box -->
+                <div class="p-4 rounded-4 bg-light border border-2 border-primary border-opacity-25 mb-4 text-start">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                        <span class="small fw-semibold text-uppercase text-muted" style="letter-spacing: 0.05em;">Your Unique Reference Number</span>
+                        <span class="badge bg-primary text-white">Save This Number</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <span class="fs-2 fw-bold text-primary text-break" id="refNumText">@Model.ReferenceNumber</span>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="copyRefNumber()" id="copyBtn">
+                            <i class="bi bi-clipboard me-1"></i> Copy
+                        </button>
+                    </div>
+                    <hr class="my-3 opacity-25">
+                    <div class="small text-muted d-flex flex-wrap justify-content-between gap-2">
+                        <span><strong>Verification Key:</strong> @(string.IsNullOrEmpty(Model.RollNumber) ? "None (Anonymous)" : Model.RollNumber)</span>
+                        <span><strong>Submitted:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</span>
+                    </div>
+                </div>
+
+                <!-- Next Steps Accordion/List -->
+                <div class="text-start mb-4">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="bi bi-diagram-3 text-primary me-2"></i>What Happens Next?
+                    </h5>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light border">
+                            <div class="badge bg-primary rounded-circle p-2 mt-1">1</div>
+                            <div>
+                                <strong class="text-dark">Strict Confidential Intake</strong>
+                                <p class="small text-muted mb-0">The designated Anti-Ragging Officer reviews your report without disclosing your identity to unauthorized staff or students.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light border">
+                            <div class="badge bg-primary rounded-circle p-2 mt-1">2</div>
+                            <div>
+                                <strong class="text-dark">Proctorial Inquiry &amp; Action</strong>
+                                <p class="small text-muted mb-0">The committee initiates inquiry under UGC guidelines, ensures student safety, and takes necessary protective measures.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light border">
+                            <div class="badge bg-primary rounded-circle p-2 mt-1">3</div>
+                            <div>
+                                <strong class="text-dark">Tracking Updates</strong>
+                                <p class="small text-muted mb-0">You can track the progress of your grievance at any time using your reference number and optional verification key.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a asp-action="Track" asp-route-refNo="@Model.ReferenceNumber" class="btn btn-primary px-4 py-2 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Track This Complaint
+                    </a>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary px-4 py-2">
+                        <i class="bi bi-house me-1"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+
+            <!-- Emergency Footer -->
+            <div class="card border-0 rounded-4 p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-center">
+                <span class="small text-danger fw-semibold">
+                    <i class="bi bi-telephone-fill me-1"></i> Emergency assistance needed right now? Call Toll-Free 1800-180-5522 or Campus Security (+91 94400 12345).
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyRefNumber() {
+            const refText = document.getElementById('refNumText').innerText;
+            navigator.clipboard.writeText(refText).then(function() {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="bi bi-clipboard me-1"></i> Copy';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                }, 3000);
+            });
+        }
+    </script>
+}

@@ -1,0 +1,178 @@
+@model BackToYou.Models.ViewModels.CheckComplaintStatusViewModel
+@{
+    ViewData["Title"] = "Track Complaint Status";
+    var result = ViewBag.StatusResult as BackToYou.Models.ViewModels.ComplaintStatusResultViewModel;
+}
+
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <!-- Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Anti-Ragging</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Track Status</li>
+                </ol>
+            </nav>
+
+            <!-- Page Title -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-3 p-3 bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-3">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div>
+                    <h1 class="page-title mb-1">Track Complaint Status</h1>
+                    <p class="section-subtitle mb-0">Check the current progress and official committee updates using your reference number.</p>
+                </div>
+            </div>
+
+            <!-- Tracking Input Form Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-4 bg-white mb-4">
+                <form asp-action="Track" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-3 small" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReferenceNumber" class="form-label fw-semibold">Complaint Reference Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-hash"></i></span>
+                                <input asp-for="ReferenceNumber" class="form-control" placeholder="e.g. ARC-2026-A1B2C" required />
+                            </div>
+                            <span asp-validation-for="ReferenceNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="VerificationKey" class="form-label fw-semibold">Roll Number or Email <span class="text-muted fw-normal small">(Optional)</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-person-badge"></i></span>
+                                <input asp-for="VerificationKey" class="form-control" placeholder="Verification roll # or email" />
+                            </div>
+                            <span asp-validation-for="VerificationKey" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
+                        <span class="small text-muted"><i class="bi bi-shield-lock text-success me-1"></i> Public inquiries never reveal student identity or accused names.</span>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            <i class="bi bi-search me-1"></i> Verify &amp; Track
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            @if (result != null)
+            {
+                <!-- Tracking Result Card -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                    <div class="p-4 bg-light border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="small text-muted text-uppercase fw-semibold" style="letter-spacing: 0.05em;">Complaint Reference</span>
+                            <h4 class="fw-bold mb-0 text-dark">@result.ReferenceNumber</h4>
+                        </div>
+                        <div>
+                            @{
+                                var statusClass = result.Status switch
+                                {
+                                    BackToYou.Models.Entities.ComplaintStatus.Submitted => "bg-secondary text-white",
+                                    BackToYou.Models.Entities.ComplaintStatus.UnderReview => "bg-warning text-dark",
+                                    BackToYou.Models.Entities.ComplaintStatus.ActionInProgress => "bg-primary text-white",
+                                    BackToYou.Models.Entities.ComplaintStatus.Resolved => "bg-success text-white",
+                                    _ => "bg-secondary text-white"
+                                };
+
+                                var statusTitle = result.Status switch
+                                {
+                                    BackToYou.Models.Entities.ComplaintStatus.Submitted => "Submitted",
+                                    BackToYou.Models.Entities.ComplaintStatus.UnderReview => "Under Review",
+                                    BackToYou.Models.Entities.ComplaintStatus.ActionInProgress => "Action in Progress",
+                                    BackToYou.Models.Entities.ComplaintStatus.Resolved => "Resolved",
+                                    _ => result.Status.ToString()
+                                };
+                            }
+                            <span class="badge @statusClass px-3 py-2 fs-6 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-dot"></i> @statusTitle
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <!-- Progress Steps Tracker -->
+                        <div class="mb-4 pb-2">
+                            <div class="d-flex justify-content-between position-relative px-2">
+                                @{
+                                    int currentStep = (int)result.Status; // 1 to 4
+                                }
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center @(currentStep >= 1 ? "bg-primary text-white" : "bg-light text-muted border")" 
+                                         style="width: 38px; height: 38px; font-weight: 700;">1</div>
+                                    <div class="small fw-semibold mt-2 text-dark">Submitted</div>
+                                </div>
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center @(currentStep >= 2 ? "bg-primary text-white" : "bg-light text-muted border")" 
+                                         style="width: 38px; height: 38px; font-weight: 700;">2</div>
+                                    <div class="small fw-semibold mt-2 text-dark">Under Review</div>
+                                </div>
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center @(currentStep >= 3 ? "bg-primary text-white" : "bg-light text-muted border")" 
+                                         style="width: 38px; height: 38px; font-weight: 700;">3</div>
+                                    <div class="small fw-semibold mt-2 text-dark">Action In Progress</div>
+                                </div>
+                                <div class="text-center" style="width: 25%;">
+                                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center @(currentStep >= 4 ? "bg-success text-white" : "bg-light text-muted border")" 
+                                         style="width: 38px; height: 38px; font-weight: 700;">4</div>
+                                    <div class="small fw-semibold mt-2 text-dark">Resolved</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incident Summary Details -->
+                        <div class="row g-3 p-3 bg-light rounded-3 mb-4">
+                            <div class="col-sm-6">
+                                <span class="small text-muted d-block">Type of Ragging</span>
+                                <strong class="text-dark">@result.RaggingType</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="small text-muted d-block">Reported Campus Location</span>
+                                <strong class="text-dark">@result.Location</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="small text-muted d-block">Date of Incident</span>
+                                <span class="text-dark">@result.IncidentDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="small text-muted d-block">Filing Date</span>
+                                <span class="text-dark">@result.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</span>
+                            </div>
+                        </div>
+
+                        <!-- Committee Remarks / Action Taken -->
+                        <div class="p-3 rounded-3 border @(result.Status == BackToYou.Models.Entities.ComplaintStatus.Resolved ? "border-success bg-success bg-opacity-10" : "bg-white")">
+                            <h6 class="fw-bold mb-2 @(result.Status == BackToYou.Models.Entities.ComplaintStatus.Resolved ? "text-success" : "text-dark")">
+                                <i class="bi bi-journal-check me-1"></i> Committee Status Notes
+                            </h6>
+                            @if (!string.IsNullOrWhiteSpace(result.ActionTaken))
+                            {
+                                <p class="text-secondary mb-1">@result.ActionTaken</p>
+                                <span class="small text-muted">Last updated on @(result.UpdatedAt?.ToString("MMM dd, yyyy - hh:mm tt") ?? "Recently")</span>
+                            }
+                            else
+                            {
+                                <p class="text-muted small mb-0">
+                                    Your complaint has been allocated to the Anti-Ragging Investigation Squad. Formal inquiry and preliminary review are actively underway.
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Helpline reminder card -->
+            <div class="p-3 rounded-4 bg-light border text-center text-muted small">
+                Need to speak with a counselor or faculty representative? Call the 24x7 National Helpline at <strong class="text-dark">1800-180-5522</strong> or email <a href="mailto:helpline@antiragging.in" class="text-decoration-none text-primary">helpline@antiragging.in</a>.
+            </div>
+        </div>
+    </div>
+</div>

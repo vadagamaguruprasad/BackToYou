@@ -1,0 +1,207 @@
+@{
+    ViewData["Title"] = "Anti-Ragging Support & Reporting Portal";
+}
+
+<div class="container py-4 py-lg-5">
+    <!-- Breadcrumb / Header -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Anti-Ragging Portal</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="page-title mb-1">Anti-Ragging Support &amp; Grievance Cell</h1>
+                <p class="section-subtitle mb-0">Confidential, zero-tolerance reporting and student welfare desk.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Track" class="btn btn-secondary">
+                    <i class="bi bi-search me-1"></i> Track Complaint Status
+                </a>
+                <a asp-action="FileComplaint" class="btn btn-primary">
+                    <i class="bi bi-shield-plus me-1"></i> File Confidential Complaint
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Help Banner (Mandatory safety notice) -->
+    <div class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-4" role="alert">
+        <div class="d-flex align-items-start gap-3">
+            <div class="fs-1 text-danger lh-1">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading fw-bold mb-1 text-danger">Immediate Safety Warning &amp; 24x7 Emergency Helplines</h5>
+                <p class="mb-2 text-dark">
+                    <strong>This online portal is an administrative grievance grievance system and is NOT an emergency dispatch service.</strong>
+                    If you, a friend, or anyone on campus is facing immediate physical danger, harassment, or confinement, do not wait for an online form review. Reach out immediately to the emergency contacts below:
+                </p>
+                <div class="d-flex flex-wrap gap-2 pt-1">
+                    <a href="tel:18001805522" class="btn btn-sm btn-danger fw-semibold">
+                        <i class="bi bi-telephone-fill me-1"></i> National Anti-Ragging Helpline: 1800-180-5522 (Toll-Free 24x7)
+                    </a>
+                    <a href="tel:112" class="btn btn-sm btn-outline-danger fw-semibold bg-white">
+                        <i class="bi bi-telephone-fill me-1"></i> National Emergency: 112
+                    </a>
+                    <a href="mailto:helpline@antiragging.in" class="btn btn-sm btn-outline-danger fw-semibold bg-white">
+                        <i class="bi bi-envelope-fill me-1"></i> helpline@antiragging.in
+                    </a>
+                    <span class="badge bg-white text-danger border border-danger d-inline-flex align-items-center px-3 py-2">
+                        <i class="bi bi-shield-shaded me-1"></i> Campus Security Control Room: Ext 911 / +91 94400 12345
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero / Action Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-white position-relative overflow-hidden" 
+                 style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-3 p-3 bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 fs-3">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-danger text-uppercase px-2 py-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Confidential &amp; Protected</span>
+                        <h4 class="fw-bold mb-0 text-white">File a Complaint</h4>
+                    </div>
+                </div>
+                <p class="text-white-50 mb-4">
+                    Report any incident of physical intimidation, verbal harassment, bullying, or discrimination. Your submission will be processed under strict institutional confidentiality guidelines.
+                </p>
+                <ul class="list-unstyled text-white-50 small mb-4">
+                    <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Unique Complaint Reference Number generated instantly</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Access restricted exclusively to the Anti-Ragging Committee</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>Never visible in public lost &amp; found listings or search engines</li>
+                    <li class="mb-0"><i class="bi bi-check2-circle text-info me-2"></i>Anonymous submission supported if you do not wish to disclose your name</li>
+                </ul>
+                <div class="mt-auto pt-2">
+                    <a asp-action="FileComplaint" class="btn btn-primary btn-lg w-100 py-3 fw-semibold">
+                        <i class="bi bi-shield-plus me-2"></i>Submit Confidential Complaint
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-3 p-3 bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-3">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-secondary text-uppercase px-2 py-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Live Status Inquiry</span>
+                        <h4 class="fw-bold mb-0 text-dark">Track Existing Complaint</h4>
+                    </div>
+                </div>
+                <p class="text-muted mb-4">
+                    Already filed a complaint? Enter your Complaint Reference Number and Roll Number to verify your identity and view the current committee status and resolution remarks.
+                </p>
+                
+                <form asp-action="Track" method="get" class="mb-3">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Complaint Reference Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-hash"></i></span>
+                            <input type="text" name="referenceNumber" class="form-control border-start-0" placeholder="e.g. ARC-2026-A1B2C" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100 py-2 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Proceed to Track Status
+                    </button>
+                </form>
+
+                <div class="p-3 bg-light rounded-3 small text-muted mt-auto">
+                    <i class="bi bi-info-circle text-primary me-1"></i>
+                    <strong>Privacy Note:</strong> Tracking requires matching your Roll Number to prevent unauthorized individuals from viewing your complaint status.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy, UGC Regulations, and What Qualifies as Ragging -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h4 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-book-half text-primary me-2"></i>Institutional Anti-Ragging Policy
+                </h4>
+                <p class="text-secondary">
+                    In compliance with the directives of the Supreme Court of India and University Grants Commission (UGC) Regulations on Curbing the Menace of Ragging in Higher Educational Institutions, our campus enforces a <strong>Zero-Tolerance Policy</strong> towards ragging in any shape or form.
+                </p>
+                <div class="row g-3 mt-1">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-light h-100">
+                            <div class="fw-bold text-dark mb-1"><i class="bi bi-slash-circle text-danger me-1"></i> Physical Harassment</div>
+                            <p class="small text-muted mb-0">Assault, forced physical exertion, confinement, bodily harm, or dress coercion.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-light h-100">
+                            <div class="fw-bold text-dark mb-1"><i class="bi bi-chat-quote text-warning me-1"></i> Verbal Harassment</div>
+                            <p class="small text-muted mb-0">Derogatory remarks, abusive language, public humiliation, or forced singing/speaking.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-light h-100">
+                            <div class="fw-bold text-dark mb-1"><i class="bi bi-heartbreak text-primary me-1"></i> Mental &amp; Emotional</div>
+                            <p class="small text-muted mb-0">Psychological torment, intimidation, sleep deprivation, or isolating students.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-light h-100">
+                            <div class="fw-bold text-dark mb-1"><i class="bi bi-phone text-info me-1"></i> Cyberbullying</div>
+                            <p class="small text-muted mb-0">Online trolling, non-consensual photography, harassment via social groups or messaging.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h4 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-shield-check text-success me-2"></i>Campus Support Network
+                </h4>
+                <p class="text-secondary small mb-3">
+                    Students can also approach committee members or campus welfare cells directly:
+                </p>
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Anti-Ragging Squad (Central Desk)</strong>
+                            <div class="text-muted">Administrative Block, Ground Floor</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">+91 94400 12345</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Dean of Student Affairs</strong>
+                            <div class="text-muted">dean.students@campus.edu</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">Ext 104</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Women's Grievance Cell</strong>
+                            <div class="text-muted">Dedicated student support cell</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">1091 / 181</span>
+                    </li>
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Student Psychological Counseling</strong>
+                            <div class="text-muted">Health Center, 09:00 AM - 05:00 PM</div>
+                        </div>
+                        <span class="badge bg-light text-dark border">Room 12B</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,189 @@
+@model BackToYou.Models.ViewModels.AdminComplaintListViewModel
+@{
+    ViewData["Title"] = "Anti-Ragging Complaints Desk";
+}
+
+<div class="container py-4 py-lg-5">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger px-2 py-1"><i class="bi bi-shield-lock-fill me-1"></i>Restricted Access</span>
+                <h1 class="page-title mb-0">Anti-Ragging Committee Desk</h1>
+            </div>
+            <p class="section-subtitle mb-0">Confidential registry of ragging complaints, proctorial inquiries, and grievance resolutions.</p>
+        </div>
+        <div class="dashboard-nav-pills">
+            <a asp-action="Dashboard" class="nav-link">Overview</a>
+            <a asp-action="ManageClaims" class="nav-link">Claims</a>
+            <a asp-action="ManageItems" class="nav-link">Items</a>
+            <a asp-action="ManageUsers" class="nav-link">Users</a>
+            <a asp-action="AntiRagging" class="nav-link active">Anti-Ragging (@Model.TotalCount)</a>
+        </div>
+    </div>
+
+    <!-- Stat Highlights Row -->
+    <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <span class="small text-muted fw-semibold text-uppercase">Total Logged</span>
+                <div class="fs-3 fw-bold text-dark mt-1">@Model.TotalCount</div>
+                <span class="small text-muted">All grievances</span>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <span class="small text-muted fw-semibold text-uppercase text-secondary">New Submissions</span>
+                <div class="fs-3 fw-bold text-secondary mt-1">@Model.SubmittedCount</div>
+                <span class="small text-muted">Awaiting intake</span>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <span class="small text-warning fw-semibold text-uppercase">Under Inquiry</span>
+                <div class="fs-3 fw-bold text-warning mt-1">@Model.UnderReviewCount</div>
+                <span class="small text-muted">In committee review</span>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <span class="small text-success fw-semibold text-uppercase">Resolved</span>
+                <div class="fs-3 fw-bold text-success mt-1">@Model.ResolvedCount</div>
+                <span class="small text-muted">Action concluded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+        <form method="get" asp-action="AntiRagging" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" value="@Model.SearchQuery" class="form-control border-start-0" 
+                           placeholder="Search by Reference, Roll #, Student Name, or Location..." />
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Submitted" selected="@(Model.SelectedStatus == BackToYou.Models.Entities.ComplaintStatus.Submitted)">Submitted</option>
+                    <option value="UnderReview" selected="@(Model.SelectedStatus == BackToYou.Models.Entities.ComplaintStatus.UnderReview)">Under Review</option>
+                    <option value="ActionInProgress" selected="@(Model.SelectedStatus == BackToYou.Models.Entities.ComplaintStatus.ActionInProgress)">Action in Progress</option>
+                    <option value="Resolved" selected="@(Model.SelectedStatus == BackToYou.Models.Entities.ComplaintStatus.Resolved)">Resolved</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <select name="type" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Types of Ragging</option>
+                    <option value="Physical" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Physical)">Physical</option>
+                    <option value="Verbal" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Verbal)">Verbal</option>
+                    <option value="Emotional" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Emotional)">Mental/Emotional</option>
+                    <option value="Cyberbullying" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Cyberbullying)">Cyberbullying</option>
+                    <option value="Threats" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Threats)">Threats</option>
+                    <option value="Discrimination" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Discrimination)">Discrimination</option>
+                    <option value="Other" selected="@(Model.SelectedType == BackToYou.Models.Entities.RaggingType.Other)">Other</option>
+                </select>
+            </div>
+
+            <div class="col-md-1 d-grid">
+                <a asp-action="AntiRagging" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Complaints Table -->
+    @if (Model.Complaints != null && Model.Complaints.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small text-muted" style="letter-spacing: 0.05em;">
+                        <tr>
+                            <th class="ps-4">Reference #</th>
+                            <th>Student / Roll #</th>
+                            <th>Ragging Type</th>
+                            <th>Incident Date &amp; Place</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.Complaints)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-bold text-primary">@c.ReferenceNumber</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(c.StudentName))
+                                    {
+                                        <div class="fw-semibold text-dark">@c.StudentName</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-secondary border">Anonymous</span>
+                                    }
+                                    <div class="small text-muted font-monospace">@c.RollNumber</div>
+                                </td>
+                                <td>
+                                    @{
+                                        var typeBadge = c.RaggingType switch
+                                        {
+                                            BackToYou.Models.Entities.RaggingType.Physical => "bg-danger text-white",
+                                            BackToYou.Models.Entities.RaggingType.Verbal => "bg-warning text-dark",
+                                            BackToYou.Models.Entities.RaggingType.Emotional => "bg-info text-white",
+                                            BackToYou.Models.Entities.RaggingType.Cyberbullying => "bg-primary text-white",
+                                            BackToYou.Models.Entities.RaggingType.Threats => "bg-danger text-white",
+                                            BackToYou.Models.Entities.RaggingType.Discrimination => "bg-dark text-white",
+                                            _ => "bg-secondary text-white"
+                                        };
+                                    }
+                                    <span class="badge @typeBadge rounded-pill">@c.RaggingType</span>
+                                </td>
+                                <td>
+                                    <div class="fw-medium text-dark small"><i class="bi bi-geo-alt text-danger me-1"></i>@c.Location</div>
+                                    <div class="small text-muted">@c.IncidentDate.ToString("MMM dd, yyyy")</div>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">@c.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var (badgeClass, badgeIcon) = c.Status switch
+                                        {
+                                            BackToYou.Models.Entities.ComplaintStatus.Submitted => ("bg-secondary text-white", "bi-envelope"),
+                                            BackToYou.Models.Entities.ComplaintStatus.UnderReview => ("bg-warning text-dark", "bi-hourglass-split"),
+                                            BackToYou.Models.Entities.ComplaintStatus.ActionInProgress => ("bg-primary text-white", "bi-gear-wide-connected"),
+                                            BackToYou.Models.Entities.ComplaintStatus.Resolved => ("bg-success text-white", "bi-check-circle-fill"),
+                                            _ => ("bg-secondary text-white", "bi-circle")
+                                        };
+                                    }
+                                    <span class="badge @badgeClass rounded-pill px-3 py-2">
+                                        <i class="bi @badgeIcon me-1"></i>@c.Status
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="AntiRaggingDetail" asp-route-id="@c.Id" class="btn btn-outline-primary btn-sm px-3 fw-semibold">
+                                        <i class="bi bi-eye me-1"></i> Review &amp; Act
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-5 bg-white text-center">
+            <div class="mx-auto mb-3 text-muted fs-1"><i class="bi bi-shield-check text-success"></i></div>
+            <h5 class="fw-bold text-dark">No Ragging Complaints Found</h5>
+            <p class="text-muted small mb-0">No complaints match the specified filters or search query.</p>
+        </div>
+    }
+</div>

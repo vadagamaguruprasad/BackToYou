@@ -10,6 +10,8 @@ namespace BackToYou.Models.ViewModels
         public int TotalPendingClaims { get; set; }
         public int TotalApprovedClaims { get; set; }
         public int TotalRegisteredUsers { get; set; }
+        public int TotalRaggingComplaints { get; set; }
+        public int PendingRaggingComplaints { get; set; }
 
         public IEnumerable<Item> RecentItems { get; set; } = new List<Item>();
         public IEnumerable<Claim> PendingClaims { get; set; } = new List<Claim>();

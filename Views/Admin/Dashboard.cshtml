@@ -12,6 +12,7 @@
         </div>
         <div class="dashboard-nav-pills">
             <a asp-action="Dashboard" class="nav-link active">Overview</a>
+            <a asp-action="AntiRagging" class="nav-link text-danger fw-semibold"><i class="bi bi-shield-exclamation me-1"></i>Anti-Ragging (@Model.PendingRaggingComplaints)</a>
             <a asp-action="ManageClaims" class="nav-link">Claims (@Model.TotalPendingClaims)</a>
             <a asp-action="ManageItems" class="nav-link">Items</a>
             <a asp-action="ManageUsers" class="nav-link">Users</a>
@@ -19,7 +20,7 @@
     </div>
 
     <!-- Metrics Stat Cards -->
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
         <div class="col">
             <div class="dashboard-stat-card">
                 <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Total Listings</span>
@@ -30,9 +31,17 @@
 
         <div class="col">
             <div class="dashboard-stat-card">
-                <span class="text-warning small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Pending Review</span>
+                <span class="text-danger small fw-semibold text-uppercase" style="letter-spacing: 0.05em;"><i class="bi bi-shield-lock-fill me-1"></i>Anti-Ragging Desk</span>
+                <div class="dashboard-stat-number text-danger">@Model.PendingRaggingComplaints <span class="fs-6 text-muted fw-normal">/ @Model.TotalRaggingComplaints</span></div>
+                <div class="small text-muted mt-2"><a asp-action="AntiRagging" class="text-decoration-none text-danger fw-semibold">Review complaints &rarr;</a></div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="dashboard-stat-card">
+                <span class="text-warning small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Pending Claims</span>
                 <div class="dashboard-stat-number text-warning">@Model.TotalPendingClaims</div>
-                <div class="small text-muted mt-2">Ownership claims awaiting verification</div>
+                <div class="small text-muted mt-2">Claims awaiting verification</div>
             </div>
         </div>
 

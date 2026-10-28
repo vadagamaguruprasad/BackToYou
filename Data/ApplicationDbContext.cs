@@ -14,10 +14,15 @@ namespace BackToYou.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Item> Items => Set<Item>();
         public DbSet<Claim> Claims => Set<Claim>();
+        public DbSet<AntiRaggingComplaint> AntiRaggingComplaints => Set<AntiRaggingComplaint>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<AntiRaggingComplaint>()
+                .HasIndex(a => a.ReferenceNumber)
+                .IsUnique();
 
             // Relationships
             builder.Entity<Item>()

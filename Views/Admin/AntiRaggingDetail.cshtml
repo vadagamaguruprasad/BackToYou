@@ -1,0 +1,181 @@
+@model BackToYou.Models.Entities.AntiRaggingComplaint
+@{
+    ViewData["Title"] = $"Complaint Detail - {Model.ReferenceNumber}";
+}
+
+<div class="container py-4 py-lg-5">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb small mb-0">
+                    <li class="breadcrumb-item"><a asp-action="Dashboard" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a asp-action="AntiRagging" class="text-decoration-none">Anti-Ragging Desk</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.ReferenceNumber</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Confidential</span>
+                <h1 class="page-title mb-0">Complaint Details</h1>
+            </div>
+        </div>
+        <div>
+            <a asp-action="AntiRagging" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Complaints List
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert / Status Banner -->
+    <div class="alert alert-light border rounded-4 shadow-sm p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="small text-muted text-uppercase fw-semibold d-block">Reference Number</span>
+                <h3 class="fw-bold mb-0 text-primary">@Model.ReferenceNumber</h3>
+            </div>
+            <div class="text-end">
+                <span class="small text-muted text-uppercase fw-semibold d-block">Current Inquiry Status</span>
+                @{
+                    var (badgeClass, badgeIcon) = Model.Status switch
+                    {
+                        BackToYou.Models.Entities.ComplaintStatus.Submitted => ("bg-secondary text-white", "bi-envelope"),
+                        BackToYou.Models.Entities.ComplaintStatus.UnderReview => ("bg-warning text-dark", "bi-hourglass-split"),
+                        BackToYou.Models.Entities.ComplaintStatus.ActionInProgress => ("bg-primary text-white", "bi-gear-wide-connected"),
+                        BackToYou.Models.Entities.ComplaintStatus.Resolved => ("bg-success text-white", "bi-check-circle-fill"),
+                        _ => ("bg-secondary text-white", "bi-circle")
+                    };
+                }
+                <span class="badge @badgeClass fs-6 px-3 py-2 rounded-pill shadow-sm">
+                    <i class="bi @badgeIcon me-1"></i>@Model.Status
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Details Column -->
+        <div class="col-lg-7">
+            <!-- Student & Complainant Details -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="bi bi-person-badge text-primary me-2"></i>Complainant Information
+                </h5>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <span class="small text-muted d-block">Student Name</span>
+                        <strong class="text-dark">@(string.IsNullOrEmpty(Model.StudentName) ? "Anonymous / Withheld" : Model.StudentName)</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="small text-muted d-block">Roll Number</span>
+                        <strong class="text-dark font-monospace">@Model.RollNumber</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="small text-muted d-block">Contact Phone</span>
+                        <span class="text-dark">@(string.IsNullOrEmpty(Model.ContactPhone) ? "Not provided" : Model.ContactPhone)</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="small text-muted d-block">Contact Email</span>
+                        <span class="text-dark">@(string.IsNullOrEmpty(Model.ContactEmail) ? "Not provided" : Model.ContactEmail)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Overview -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="bi bi-file-earmark-text text-primary me-2"></i>Incident Particulars
+                </h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-4">
+                        <span class="small text-muted d-block">Ragging Type</span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">@Model.RaggingType</span>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="small text-muted d-block">Incident Date</span>
+                        <strong class="text-dark">@Model.IncidentDate.ToString("MMM dd, yyyy")</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="small text-muted d-block">Location</span>
+                        <strong class="text-dark">@Model.Location</strong>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="small text-muted d-block mb-1">Detailed Description</span>
+                    <div class="p-3 rounded-3 bg-light border text-dark" style="white-space: pre-wrap;">@Model.Description</div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.AccusedDetails))
+                {
+                    <div class="mb-3">
+                        <span class="small text-muted d-block mb-1">Accused Person(s) Named</span>
+                        <div class="p-3 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-dark" style="white-space: pre-wrap;">@Model.AccusedDetails</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Witnesses))
+                {
+                    <div class="mb-0">
+                        <span class="small text-muted d-block mb-1">Witnesses / Relevant Contacts</span>
+                        <div class="p-3 rounded-3 bg-light border text-dark" style="white-space: pre-wrap;">@Model.Witnesses</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Management & Committee Action Column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="bi bi-gear-wide-connected text-primary me-2"></i>Committee Resolution &amp; Actions
+                </h5>
+                
+                <form asp-action="UpdateAntiRaggingStatus" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Update Complaint Status</label>
+                        <select name="status" class="form-select">
+                            <option value="Submitted" selected="@(Model.Status == BackToYou.Models.Entities.ComplaintStatus.Submitted)">Submitted</option>
+                            <option value="UnderReview" selected="@(Model.Status == BackToYou.Models.Entities.ComplaintStatus.UnderReview)">Under Review</option>
+                            <option value="ActionInProgress" selected="@(Model.Status == BackToYou.Models.Entities.ComplaintStatus.ActionInProgress)">Action in Progress</option>
+                            <option value="Resolved" selected="@(Model.Status == BackToYou.Models.Entities.ComplaintStatus.Resolved)">Resolved</option>
+                        </select>
+                        <div class="form-text small text-muted">The student sees this status update when checking with their reference number.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Committee Action Taken / Remarks</label>
+                        <textarea name="actionTaken" rows="6" class="form-control" 
+                                  placeholder="Record official actions, disciplinary proceedings, warnings, counselling notes, or resolution summary...">@Model.ActionTaken</textarea>
+                        <div class="form-text small text-muted">
+                            <i class="bi bi-info-circle me-1"></i> These remarks will be viewable by the student on the status tracking page to confirm action taken.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Save Decision &amp; Update Status
+                    </button>
+                </form>
+            </div>
+
+            <!-- Metadata Audit Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-light text-muted small">
+                <h6 class="fw-bold text-dark mb-2">Registry Audit Trail</h6>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span>Logged At:</span>
+                    <strong class="text-dark">@Model.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span>Last Updated:</span>
+                    <strong class="text-dark">@(Model.UpdatedAt?.ToString("MMM dd, yyyy - hh:mm tt") ?? "No updates yet")</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span>Resolution Status:</span>
+                    <strong class="text-dark">@(Model.Status == BackToYou.Models.Entities.ComplaintStatus.Resolved ? (Model.UpdatedAt?.ToString("MMM dd, yyyy - hh:mm tt") ?? "Resolved") : "Pending")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
