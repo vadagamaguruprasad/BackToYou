@@ -1,4 +1,4 @@
-﻿using BackToYou.Models.Entities;
+using BackToYou.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,6 +47,26 @@ namespace BackToYou.Data
                 if (createAdminResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
+            else
+            {
+                // Always guarantee admin user has the Admin role and active credentials
+                if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+
+                adminUser.EmailConfirmed = true;
+                adminUser.LockoutEnd = null;
+                adminUser.AccessFailedCount = 0;
+                await userManager.UpdateAsync(adminUser);
+
+                // Ensure password matches Admin@123
+                if (!await userManager.CheckPasswordAsync(adminUser, "Admin@123"))
+                {
+                    var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+                    await userManager.ResetPasswordAsync(adminUser, resetToken, "Admin@123");
                 }
             }
 

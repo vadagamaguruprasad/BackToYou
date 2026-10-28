@@ -1,5 +1,6 @@
 using BackToYou.Data;
 using BackToYou.Models.Entities;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,24 +62,37 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// ── Data Protection (Persist keys so session cookies survive container restarts) 
+var keysFolder = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtection-Keys");
+if (!Directory.Exists(keysFolder))
+{
+    Directory.CreateDirectory(keysFolder);
+}
+builder.Services.AddDataProtection()
+    .SetApplicationName("BackToYou")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder));
+
+// ── Application Cookie ─────────────────────────────────────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.Cookie.Name = "BackToYou.Auth";
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
 });
 
-// ── Forwarded Headers (Cloud Proxy Support: Vercel / Render) ───────────────
+// ── Forwarded Headers (Cloud Proxy Support: Render / Vercel / Cloudflare) ───
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.All;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+    options.ForwardLimit = null; // Allow multi-tier reverse proxies without dropping proto/IP
 });
 
 // ── Antiforgery Cookie Policy (Prevent HTTP 400 on Login/Forms behind proxy) ──
@@ -137,6 +151,24 @@ using (var scope = app.Services.CreateScope())
 
 // ── HTTP Pipeline ──────────────────────────────────────────────────────────
 app.UseForwardedHeaders();
+
+// When running behind reverse proxy (Render / Vercel), ensure request scheme is https
+// so that generated redirects and authentication cookies remain secure and consistent
+if (!string.IsNullOrEmpty(databaseUrl) || !app.Environment.IsDevelopment())
+{
+    app.Use((context, next) =>
+    {
+        if (context.Request.Headers.TryGetValue("X-Forwarded-Proto", out var proto) && proto == "https")
+        {
+            context.Request.Scheme = "https";
+        }
+        else if (context.Request.Headers.ContainsKey("X-Forwarded-For"))
+        {
+            context.Request.Scheme = "https";
+        }
+        return next();
+    });
+}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -103,19 +103,46 @@ namespace BackToYou.Controllers
                 return View(model);
             }
 
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            bool isAdmin = user != null && await _userManager.IsInRoleAsync(user, "Admin");
+            bool remember = model.RememberMe || isAdmin; // Always persist admin session
+
             var result = await _signInManager.PasswordSignInAsync(
                 model.Email,
                 model.Password,
-                model.RememberMe,
+                remember,
                 lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
                 TempData["SuccessMessage"] = "Successfully logged in!";
+
+                // Sanitize returnUrl: if returnUrl points to a POST action or Logout, redirect to the view page
+                // to prevent HTTP 405 Method Not Allowed error
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
+                    if (returnUrl.Contains("ReviewClaim", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return RedirectToAction("ManageClaims", "Admin");
+                    }
+                    if (returnUrl.Contains("DeleteItem", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return RedirectToAction("ManageItems", "Admin");
+                    }
+                    if (returnUrl.Contains("Logout", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+
                     return Redirect(returnUrl);
                 }
+
+                // If Admin logs in without returnUrl, take them straight to Admin Dashboard
+                if (isAdmin)
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+
                 return RedirectToAction("Index", "Home");
             }
 
@@ -123,8 +150,8 @@ namespace BackToYou.Controllers
             return View(model);
         }
 
-        // POST: /Account/Logout
-        [HttpPost]
+        // GET & POST: /Account/Logout (Prevents HTTP 405 if navigated to via GET)
+        [HttpGet, HttpPost]
         [Authorize]
         public async Task<IActionResult> Logout()
         {

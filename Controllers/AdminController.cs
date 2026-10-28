@@ -70,6 +70,13 @@ namespace BackToYou.Controllers
             return View(claims);
         }
 
+        // GET fallback: /Admin/ReviewClaim (Prevents HTTP 405 Method Not Allowed if navigated via GET)
+        [HttpGet]
+        public IActionResult ReviewClaim()
+        {
+            return RedirectToAction(nameof(ManageClaims));
+        }
+
         // POST: /Admin/ReviewClaim
         [HttpPost]
         public async Task<IActionResult> ReviewClaim(int claimId, ClaimStatus status, string? adminRemarks)
@@ -136,6 +143,13 @@ namespace BackToYou.Controllers
 
             var items = await query.OrderByDescending(i => i.CreatedAt).ToListAsync();
             return View(items);
+        }
+
+        // GET fallback: /Admin/DeleteItem (Prevents HTTP 405 Method Not Allowed if navigated via GET)
+        [HttpGet]
+        public IActionResult DeleteItem()
+        {
+            return RedirectToAction(nameof(ManageItems));
         }
 
         // POST: /Admin/DeleteItem/5
