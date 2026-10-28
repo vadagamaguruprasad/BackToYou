@@ -78,7 +78,6 @@ namespace BackToYou.Controllers
 
         // POST: /Claims/SubmitClaim
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitClaim(ClaimSubmitViewModel model)
         {
             var user = await _userManager.GetUserAsync(User);

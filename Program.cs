@@ -76,7 +76,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 // ── Forwarded Headers (Cloud Proxy Support: Vercel / Render) ───────────────
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardedHeaders = ForwardedHeaders.All;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });

@@ -118,7 +118,6 @@ namespace BackToYou.Controllers
         // POST: /Items/Create
         [HttpPost]
         [Authorize]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ItemCreateViewModel model)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -214,7 +213,6 @@ namespace BackToYou.Controllers
         // POST: /Items/CloseStatus/5
         [HttpPost]
         [Authorize]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseStatus(int id)
         {
             var user = await _userManager.GetUserAsync(User);

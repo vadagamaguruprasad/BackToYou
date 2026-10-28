@@ -72,7 +72,6 @@ namespace BackToYou.Controllers
 
         // POST: /Admin/ReviewClaim
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReviewClaim(int claimId, ClaimStatus status, string? adminRemarks)
         {
             var claim = await _context.Claims
@@ -141,7 +140,6 @@ namespace BackToYou.Controllers
 
         // POST: /Admin/DeleteItem/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteItem(int id)
         {
             var item = await _context.Items.FindAsync(id);

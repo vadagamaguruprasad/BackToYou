@@ -37,7 +37,6 @@ namespace BackToYou.Controllers
 
         // POST: /Account/Register
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -95,7 +94,6 @@ namespace BackToYou.Controllers
 
         // POST: /Account/Login
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -127,7 +125,6 @@ namespace BackToYou.Controllers
 
         // POST: /Account/Logout
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Logout()
         {
